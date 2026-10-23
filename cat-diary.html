@@ -1,0 +1,2967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FF9A8B">
+  <meta name="apple-mobile-web-app-title" content="猫咪日记">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>🐱 小猫咪成长日记</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  :root {
+    --primary: #FF9A8B;
+    --primary-dark: #FF6B6B;
+    --secondary: #FFECD2;
+    --accent: #A8E6CF;
+    --accent-dark: #56D9A5;
+    --bg: #FFF8F5;
+    --card: #FFFFFF;
+    --text: #3D3D3D;
+    --text-light: #888;
+    --border: #FFE4DC;
+    --shadow: 0 4px 20px rgba(255, 154, 139, 0.15);
+    --shadow-hover: 0 8px 30px rgba(255, 154, 139, 0.25);
+    --bottom-nav-height: 64px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 10px);
+    overflow-x: hidden;
+  }
+  
+  /* 顶部导航 */
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(255, 107, 107, 0.3);
+  }
+  
+  .header-content {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .header h1 {
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .backup-badge {
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.25);
+    padding: 4px 10px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .cat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 0.3s;
+    overflow: hidden;
+  }
+  
+  .cat-avatar:active { transform: scale(0.9); }
+  .cat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  
+  /* 底部导航栏 */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 -2px 20px rgba(0,0,0,0.08);
+    z-index: 100;
+    padding-bottom: var(--safe-bottom);
+  }
+  
+  .bottom-nav-inner {
+    display: flex;
+    max-width: 900px;
+    margin: 0 auto;
+    height: var(--bottom-nav-height);
+  }
+  
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: var(--text-light);
+    font-size: 0.7rem;
+    gap: 4px;
+  }
+  
+  .nav-item .nav-icon {
+    font-size: 1.5rem;
+    transition: transform 0.2s;
+  }
+  
+  .nav-item:active .nav-icon { transform: scale(0.85); }
+  
+  .nav-item.active {
+    color: var(--primary-dark);
+  }
+  
+  .nav-item.active .nav-icon {
+    transform: scale(1.1);
+  }
+  
+  /* 顶部标签（桌面端显示） */
+  .nav-tabs {
+    display: none;
+  }
+  
+  /* 主内容区 */
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* 卡片样式 */
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--primary-dark);
+  }
+  
+  .card-title-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* 按钮样式 */
+  .btn {
+    padding: 12px 22px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  
+  .btn:active { transform: scale(0.96); }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  }
+  
+  .btn-secondary {
+    background: var(--accent);
+    color: #2d7a5f;
+  }
+  
+  .btn-outline {
+    background: white;
+    border: 2px solid var(--border);
+    color: var(--text);
+  }
+  
+  .btn-block { width: 100%; }
+  
+  .btn-small {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+  
+  /* 表单样式 */
+  .form-group { margin-bottom: 16px; }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    background: #FFFBF9;
+    font-family: inherit;
+    min-height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+  }
+  
+  .form-textarea { resize: vertical; min-height: 100px; }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  /* 猫咪档案 */
+  .profile-header {
+    text-align: center;
+    padding: 10px 0 20px;
+  }
+  
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    background: linear-gradient(135deg, var(--secondary), var(--primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    box-shadow: 0 8px 30px rgba(255, 154, 139, 0.3);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+    position: relative;
+  }
+  
+  .profile-avatar:active { transform: scale(0.95); }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  
+  .profile-name {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+  }
+  
+  .profile-breed {
+    color: var(--text-light);
+    font-size: 0.95rem;
+  }
+  
+  .profile-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .info-item {
+    text-align: center;
+    padding: 14px 10px;
+    background: linear-gradient(135deg, #FFF5F2, #FFEEE8);
+    border-radius: 14px;
+  }
+  
+  .info-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  
+  .info-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+  
+  /* 记录列表 */
+  .record-item {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    background: #FFFBF9;
+    border-radius: 14px;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+    border-left: 4px solid var(--primary);
+  }
+  
+  .record-item:active { background: #FFF5F2; }
+  
+  .record-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--secondary), var(--primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  
+  .record-content { flex: 1; min-width: 0; }
+  
+  .record-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+  
+  .record-desc {
+    color: var(--text-light);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .record-date {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+  
+  .record-delete {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 1.3rem;
+    margin-left: 4px;
+    min-height: 36px;
+    min-width: 36px;
+  }
+  
+  .record-delete:active { color: var(--primary-dark); }
+  
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+  }
+  
+  .empty-state .emoji {
+    font-size: 3.5rem;
+    margin-bottom: 12px;
+  }
+  
+  .empty-state p { font-size: 0.9rem; }
+  
+  /* 相册 */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .photo-item {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s;
+    background: var(--secondary);
+  }
+  
+  .photo-item:active { transform: scale(0.95); }
+  
+  .photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .photo-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 18px 8px 8px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    color: white;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .photo-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  
+  .add-photo {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    border: 2px dashed var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-light);
+    background: #FFFBF9;
+  }
+  
+  .add-photo:active {
+    border-color: var(--primary);
+    background: #FFF5F2;
+  }
+  
+  .add-photo .plus { font-size: 2rem; line-height: 1; }
+  .add-photo .label { font-size: 0.75rem; margin-top: 4px; }
+  
+  /* 日记时间线 */
+  .timeline {
+    position: relative;
+    padding-left: 26px;
+  }
+  
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--primary), var(--accent));
+    border-radius: 2px;
+  }
+  
+  .diary-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+  }
+  
+  .diary-item::before {
+    content: '🐾';
+    position: absolute;
+    left: -30px;
+    top: 14px;
+    font-size: 1rem;
+    background: var(--bg);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .diary-date {
+    font-size: 0.8rem;
+    color: var(--primary-dark);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  
+  .diary-content {
+    line-height: 1.7;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  
+  .diary-mood {
+    display: inline-block;
+    padding: 3px 10px;
+    background: var(--secondary);
+    border-radius: 10px;
+    font-size: 0.75rem;
+    margin-left: auto;
+  }
+  
+  .diary-images {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .diary-images img {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    object-fit: cover;
+    cursor: pointer;
+  }
+  
+  /* 图表 */
+  .chart-container {
+    position: relative;
+    height: 220px;
+    margin: 16px 0;
+  }
+  
+  canvas { width: 100%; height: 100%; }
+  
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    background: linear-gradient(135deg, #FFF5F2, #FFEEE8);
+  }
+  
+  .stat-card.green { background: linear-gradient(135deg, #E8FAF0, #D0F5DE); }
+  .stat-card.yellow { background: linear-gradient(135deg, #FFF8E6, #FFF0CC); }
+  .stat-card.purple { background: linear-gradient(135deg, #F3E8FF, #E8D5FF); }
+  
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  
+  .stat-card.green .stat-value { color: #2d7a5f; }
+  .stat-card.yellow .stat-value { color: #b8860b; }
+  .stat-card.purple .stat-value { color: #7c3aed; }
+  
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+  
+  /* 模态框 */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-overlay.active { display: flex; }
+  
+  .modal {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 28px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: modalUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    padding-bottom: calc(28px + var(--safe-bottom));
+  }
+  
+  @keyframes modalUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  
+  .modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #FFEEE8;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  
+  .modal-close:active { background: var(--primary); color: white; }
+  
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .modal-footer .btn { flex: 1; }
+  
+  /* 图片预览 */
+  .image-preview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+  }
+  
+  .image-preview.active { display: flex; }
+  
+  .image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  
+  .image-preview-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  
+  /* 浮动添加按钮 */
+  .fab {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 20px);
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 6px 25px rgba(255, 107, 107, 0.5);
+    transition: all 0.2s;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .fab:active {
+    transform: scale(0.9);
+  }
+  
+  /* 标签选择 */
+  .tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .tag {
+    padding: 8px 14px;
+    border-radius: 16px;
+    background: #FFEEE8;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .tag:active { transform: scale(0.95); }
+  .tag.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary-dark);
+  }
+  
+  /* 备份管理 */
+  .backup-item {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    background: #FFFBF9;
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .backup-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 12px;
+  }
+  
+  .backup-info { flex: 1; }
+  .backup-name { font-weight: 600; font-size: 0.9rem; }
+  .backup-time { font-size: 0.75rem; color: var(--text-light); margin-top: 2px; }
+  
+  .backup-actions {
+    display: flex;
+    gap: 6px;
+  }
+  
+  .backup-btn {
+    padding: 6px 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 0.75rem;
+    cursor: pointer;
+    min-height: 32px;
+  }
+  
+  .backup-btn.restore { background: var(--accent); color: #2d7a5f; }
+  .backup-btn.delete { background: #FFEBEE; color: #e74c3c; }
+  
+  .backup-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px;
+    background: linear-gradient(135deg, #E8FAF0, #D0F5DE);
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  
+  .backup-status-icon { font-size: 1.5rem; }
+  .backup-status-text { font-size: 0.85rem; color: #2d7a5f; }
+  .backup-status-text strong { display: block; font-size: 0.95rem; }
+  
+  /* 底部提示 */
+  .footer-tip {
+    text-align: center;
+    padding: 20px 16px 10px;
+    color: var(--text-light);
+    font-size: 0.8rem;
+  }
+  
+  .footer-tip .paw { font-size: 1.3rem; margin-bottom: 6px; }
+  
+  /* Action Sheet 样式 */
+  .action-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 8px 16px calc(16px + var(--safe-bottom));
+    z-index: 1001;
+    animation: modalUp 0.3s ease;
+  }
+  
+  .action-sheet-title {
+    text-align: center;
+    padding: 14px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .action-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: center;
+    color: var(--text);
+    min-height: 54px;
+    font-family: inherit;
+  }
+  
+  .action-btn:last-child { border-bottom: none; }
+  .action-btn:active { background: #f9f9f9; }
+  .action-btn.danger { color: #e74c3c; }
+  .action-btn.cancel { 
+    color: var(--primary-dark); 
+    font-weight: 600;
+    margin-top: 8px;
+    background: #FFF5F2;
+    border-radius: 14px;
+    border: none;
+  }
+  
+  /* 分享图标按钮 */
+  .share-icon-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 8px;
+    background: #FFFBF9;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    color: var(--text);
+    border: 2px solid transparent;
+  }
+  
+  .share-icon-btn:active {
+    transform: scale(0.95);
+    border-color: var(--primary);
+    background: #FFF5F2;
+  }
+  
+  /* 纪念日卡片 */
+  .event-card {
+    background: linear-gradient(135deg, #FFF5F2, #FFEEE8);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  
+  .event-card:active { transform: scale(0.98); }
+  
+  .event-card.upcoming {
+    background: linear-gradient(135deg, #E8FAF0, #D0F5DE);
+  }
+  
+  .event-card.upcoming .event-days-text { color: #2d7a5f; }
+  .event-card.upcoming .event-days-num { color: #2d7a5f; }
+  
+  .event-card.purple {
+    background: linear-gradient(135deg, #F3E8FF, #E8D5FF);
+  }
+  
+  .event-card.purple .event-days-text { color: #7c3aed; }
+  .event-card.purple .event-days-num { color: #7c3aed; }
+  
+  .event-card.yellow {
+    background: linear-gradient(135deg, #FFF8E6, #FFF0CC);
+  }
+  
+  .event-card.yellow .event-days-text { color: #b8860b; }
+  .event-card.yellow .event-days-num { color: #b8860b; }
+  
+  .event-card.blue {
+    background: linear-gradient(135deg, #E8F4FF, #D0E8FF);
+  }
+  
+  .event-card.blue .event-days-text { color: #2563eb; }
+  .event-card.blue .event-days-num { color: #2563eb; }
+  
+  .event-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  
+  .event-icon {
+    font-size: 2rem;
+  }
+  
+  .event-delete {
+    background: rgba(0,0,0,0.08);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    transition: all 0.2s;
+  }
+  
+  .event-delete:active { background: rgba(0,0,0,0.15); color: #e74c3c; }
+  
+  .event-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  
+  .event-date {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 14px;
+  }
+  
+  .event-days {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  
+  .event-days-num {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    line-height: 1;
+  }
+  
+  .event-days-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+  }
+  
+  .event-days-sub {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+  
+  /* 快捷添加标签 */
+  .suggest-tag {
+    padding: 8px 14px;
+    background: #FFFBF9;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .suggest-tag:active {
+    transform: scale(0.95);
+    border-color: var(--primary);
+    background: #FFF5F2;
+  }
+  
+  /* 吐司提示 */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    text-align: center;
+  }
+  
+  .toast.show { opacity: 1; }
+  
+  /* 桌面端适配 */
+  @media (min-width: 768px) {
+    .bottom-nav { display: none; }
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 15px 20px 10px;
+      background: var(--bg);
+      position: sticky;
+      top: 72px;
+      z-index: 99;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tab {
+      flex-shrink: 0;
+      padding: 10px 18px;
+      border-radius: 20px;
+      background: white;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-tab:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .nav-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+    body { padding-bottom: 20px; }
+    .fab { bottom: 30px; right: 30px; width: 60px; height: 60px; font-size: 1.8rem; }
+    .modal {
+      border-radius: 24px;
+      margin-bottom: auto;
+      margin-top: auto;
+    }
+    .modal-overlay { align-items: center; }
+    .photo-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .stat-grid { grid-template-columns: repeat(4, 1fr); }
+    .profile-info { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="header">
+  <div class="header-content">
+    <h1>🐱 <span id="headerTitle">成长日记</span></h1>
+    <div class="header-right">
+      <div class="backup-badge" id="backupBadge" onclick="switchPage('backup')">💾 已备份</div>
+      <div class="cat-avatar" onclick="switchPage('profile')" title="猫咪档案">
+        <span id="headerAvatar">🐱</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 顶部标签（桌面端） -->
+<div class="nav-tabs">
+  <div class="nav-tab active" data-page="dashboard" onclick="switchPage('dashboard')">📊 概览</div>
+  <div class="nav-tab" data-page="weight" onclick="switchPage('weight')">⚖️ 体重</div>
+  <div class="nav-tab" data-page="food" onclick="switchPage('food')">🍽️ 饮食</div>
+  <div class="nav-tab" data-page="diary" onclick="switchPage('diary')">📝 日记</div>
+  <div class="nav-tab" data-page="events" onclick="switchPage('events')">🎉 纪念日</div>
+  <div class="nav-tab" data-page="photos" onclick="switchPage('photos')">📷 相册</div>
+  <div class="nav-tab" data-page="backup" onclick="switchPage('backup')">💾 备份</div>
+  <div class="nav-tab" data-page="share" onclick="switchPage('share')">👥 分享</div>
+  <div class="nav-tab" data-page="profile" onclick="switchPage('profile')">🐾 档案</div>
+</div>
+
+<!-- 主内容 -->
+<div class="main">
+  
+  <!-- 概览页 -->
+  <div class="page active" id="page-dashboard">
+    <div class="card">
+      <div class="profile-header">
+        <div class="profile-avatar" id="dashAvatar" onclick="switchPage('profile')">
+          <span>🐱</span>
+        </div>
+        <div class="profile-name" id="dashName">我的小猫咪</div>
+        <div class="profile-breed" id="dashBreed">点击档案设置猫咪信息</div>
+      </div>
+    </div>
+    
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statAge">--</div>
+        <div class="stat-label">🎂 年龄</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-value" id="statWeight">--</div>
+        <div class="stat-label">⚖️ 最新体重</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-value" id="statRecords">0</div>
+        <div class="stat-label">📝 日记数</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-value" id="statPhotos">0</div>
+        <div class="stat-label">📷 照片数</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">📈 体重趋势</span>
+        <button class="btn btn-primary btn-small" onclick="openWeightModal()">+ 记录</button>
+      </div>
+      <div class="chart-container">
+        <canvas id="weightChart"></canvas>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">🎉 最近纪念日</span>
+        <button class="btn btn-primary btn-small" onclick="switchPage('events')">查看全部</button>
+      </div>
+      <div id="dashEvents"></div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">📅 最近日记</span>
+        <button class="btn btn-primary btn-small" onclick="openDiaryModal()">+ 写日记</button>
+      </div>
+      <div id="recentDiary"></div>
+    </div>
+  </div>
+  
+  <!-- 体重页 -->
+  <div class="page" id="page-weight">
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">📈 体重趋势</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="weightChartFull"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">📋 记录列表</span>
+        <button class="btn btn-primary btn-small" onclick="openWeightModal()">+ 添加</button>
+      </div>
+      <div id="weightList"></div>
+    </div>
+  </div>
+  
+  <!-- 饮食页 -->
+  <div class="page" id="page-food">
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">🍽️ 饮食记录</span>
+        <button class="btn btn-primary btn-small" onclick="openFoodModal()">+ 添加</button>
+      </div>
+      <div id="foodList"></div>
+    </div>
+  </div>
+  
+  <!-- 相册页 -->
+  <div class="page" id="page-photos">
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">📷 成长相册</span>
+        <span class="backup-badge" style="background: var(--secondary); color: var(--primary-dark);" id="photoCount">0 张</span>
+      </div>
+      <div class="photo-grid" id="photoGrid">
+        <div class="add-photo" onclick="document.getElementById('photoInput').click()">
+          <div class="plus">+</div>
+          <div class="label">添加照片</div>
+        </div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(event)">
+    </div>
+  </div>
+  
+  <!-- 日记页 -->
+  <div class="page" id="page-diary">
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">📝 成长日记</span>
+        <button class="btn btn-primary btn-small" onclick="openDiaryModal()">+ 写日记</button>
+      </div>
+      <div class="timeline" id="diaryList"></div>
+    </div>
+  </div>
+  
+  <!-- 纪念日页 -->
+  <div class="page" id="page-events">
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">🎉 重要纪念日</span>
+        <button class="btn btn-primary btn-small" onclick="openEventModal()">+ 添加</button>
+      </div>
+      <div id="eventList"></div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">💡 可以记录这些日子</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <div class="suggest-tag" onclick="quickAddEvent('到家纪念日', '🏠')">🏠 到家日</div>
+        <div class="suggest-tag" onclick="quickAddEvent('生日', '🎂')">🎂 生日</div>
+        <div class="suggest-tag" onclick="quickAddEvent('第一次打疫苗', '💉')">💉 第一次疫苗</div>
+        <div class="suggest-tag" onclick="quickAddEvent('第一次洗澡', '🛁')">🛁 第一次洗澡</div>
+        <div class="suggest-tag" onclick="quickAddEvent('绝育日', '✂️')">✂️ 绝育日</div>
+        <div class="suggest-tag" onclick="quickAddEvent('下次驱虫', '🐛')">🐛 下次驱虫</div>
+        <div class="suggest-tag" onclick="quickAddEvent('下次疫苗', '💉')">💉 下次疫苗</div>
+        <div class="suggest-tag" onclick="quickAddEvent('体检日', '🏥')">🏥 体检日</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 相册页 -->
+  <div class="page" id="page-backup">
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">💾 智能备份</span></div>
+      <div class="backup-status">
+        <div class="backup-status-icon">✅</div>
+        <div class="backup-status-text">
+          <strong id="backupStatusText">数据安全</strong>
+          <span id="backupLastTime">上次备份：今天</span>
+        </div>
+      </div>
+      <p style="color: var(--text-light); font-size: 0.85rem; margin-bottom: 16px; line-height: 1.7;">
+        应用会自动在本地创建每日备份，保留最近7天的数据。<br>
+        建议定期导出到文件，防止浏览器缓存清理导致数据丢失。
+      </p>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-block" onclick="exportData()" style="flex: 1; min-width: 140px;">📤 导出备份文件</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">📥 导入</button>
+        <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-left">📦 本地备份列表</span>
+        <span class="backup-badge" style="background: var(--secondary); color: var(--primary-dark);" id="backupCount">0 个</span>
+      </div>
+      <div id="backupList"></div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">⚠️ 数据安全</span></div>
+      <div style="font-size: 0.85rem; color: var(--text-light); line-height: 1.8;">
+        <p>• 数据存储在浏览器本地，卸载浏览器或清理缓存会丢失数据</p>
+        <p>• 建议每周导出一次备份文件保存到电脑或云端</p>
+        <p>• 可以使用配套的自动备份脚本实现每日文件备份</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 分享协作页 -->
+  <div class="page" id="page-share">
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">📲 安装到桌面</span></div>
+      <div style="text-align: center; padding: 10px 0 20px;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 20px; background: linear-gradient(135deg, #FFB6A3, #FF6B6B); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; box-shadow: 0 6px 20px rgba(255,107,107,0.3);">
+          🐱
+        </div>
+        <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 4px;">小猫咪成长日记</div>
+        <div style="color: var(--text-light); font-size: 0.85rem;">像App一样使用，随时记录猫咪成长</div>
+      </div>
+      
+      <div id="installBtnContainer" style="display: none; margin-bottom: 16px;">
+        <button class="btn btn-primary btn-block" onclick="installPWA()">
+          📲 立即安装到桌面
+        </button>
+      </div>
+      
+      <div style="background: #FFF5F2; border-radius: 14px; padding: 16px; margin-bottom: 16px;">
+        <div style="font-weight: 600; margin-bottom: 10px; color: var(--primary-dark);">🍎 iPhone/Safari 安装方法</div>
+        <div style="font-size: 0.85rem; color: var(--text); line-height: 1.8;">
+          <p>1. 点击底部的 <span style="color: var(--primary-dark); font-weight: 600;">分享按钮</span> ⬆️</p>
+          <p>2. 向下滑动，找到「<span style="color: var(--primary-dark); font-weight: 600;">添加到主屏幕</span>」</p>
+          <p>3. 点击右上角「添加」即可</p>
+        </div>
+      </div>
+      
+      <div style="background: #E8FAF0; border-radius: 14px; padding: 16px;">
+        <div style="font-weight: 600; margin-bottom: 10px; color: #2d7a5f;">🤖 安卓/Chrome 安装方法</div>
+        <div style="font-size: 0.85rem; color: var(--text); line-height: 1.8;">
+          <p>1. 点击右上角 <span style="color: #2d7a5f; font-weight: 600;">菜单按钮</span> ⋮</p>
+          <p>2. 选择「<span style="color: #2d7a5f; font-weight: 600;">安装应用</span>」</p>
+          <p>3. 点击「安装」即可</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">👥 邀请家人一起记录</span></div>
+      <p style="color: var(--text-light); font-size: 0.85rem; margin-bottom: 16px; line-height: 1.7;">
+        分享给家人朋友，一起记录小猫咪的成长~
+      </p>
+      
+      <div class="share-method">
+        <button class="btn btn-primary btn-block" onclick="shareDataFile()">
+          📤 分享数据文件（推荐）
+        </button>
+        <p style="font-size: 0.75rem; color: var(--text-light); margin-top: 8px; text-align: center;">
+          导出完整数据，对方导入后即可查看和编辑
+        </p>
+      </div>
+      
+      <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
+      
+      <div style="font-weight: 600; margin-bottom: 12px;">📋 其他分享方式</div>
+      
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
+        <div class="share-icon-btn" onclick="copyShareLink()">
+          <div style="font-size: 1.8rem;">🔗</div>
+          <div style="font-size: 0.7rem; margin-top: 4px;">复制链接</div>
+        </div>
+        <div class="share-icon-btn" onclick="showQRCode()">
+          <div style="font-size: 1.8rem;">📱</div>
+          <div style="font-size: 0.7rem; margin-top: 4px;">二维码</div>
+        </div>
+        <div class="share-icon-btn" onclick="exportForShare()">
+          <div style="font-size: 1.8rem;">📁</div>
+          <div style="font-size: 0.7rem; margin-top: 4px;">导出文件</div>
+        </div>
+        <div class="share-icon-btn" onclick="document.getElementById('shareImportInput').click()">
+          <div style="font-size: 1.8rem;">📥</div>
+          <div style="font-size: 0.7rem; margin-top: 4px;">导入数据</div>
+        </div>
+        <input type="file" id="shareImportInput" accept=".json" style="display:none" onchange="importShareData(event)">
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">👨‍👩‍👧 协作记录指南</span></div>
+      <div style="font-size: 0.85rem; color: var(--text); line-height: 1.9;">
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; font-weight: 600;">1</div>
+          <div><b>导出分享：</b>发起人在「分享」页面导出数据文件</div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; font-weight: 600;">2</div>
+          <div><b>发送文件：</b>通过微信/QQ/邮件发送给家人</div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; font-weight: 600;">3</div>
+          <div><b>导入查看：</b>家人打开网页，导入文件即可查看</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--accent-dark); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; font-weight: 600;">💡</div>
+          <div><b>小提示：</b>建议一人主要记录，其他人定期同步更新~</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 二维码弹窗 -->
+    <div id="qrCodeModal" style="display: none; text-align: center; padding: 20px 0;">
+      <div id="qrCodeContainer" style="display: inline-block; padding: 20px; background: white; border-radius: 16px; box-shadow: var(--shadow);">
+        <canvas id="qrCanvas" width="200" height="200"></canvas>
+      </div>
+      <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-light);">扫码打开猫咪成长日记</p>
+    </div>
+  </div>
+  
+  <!-- 档案页 -->
+  <div class="page" id="page-profile">
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">🐾 猫咪档案</span></div>
+      <div class="profile-header">
+        <div class="profile-avatar" id="profileAvatar" onclick="document.getElementById('avatarInput').click()">
+          <span>🐱</span>
+        </div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+        <div style="color: var(--text-light); font-size: 0.8rem; margin-top: 8px;">点击头像更换</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">猫咪名字</label>
+        <input type="text" class="form-input" id="catName" placeholder="例如：小橘、咪咪" oninput="saveProfile()">
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">品种</label>
+          <select class="form-select" id="catBreed" onchange="saveProfile()">
+            <option value="">请选择</option>
+            <option value="中华田园猫">中华田园猫</option>
+            <option value="英国短毛猫">英国短毛猫</option>
+            <option value="美国短毛猫">美国短毛猫</option>
+            <option value="布偶猫">布偶猫</option>
+            <option value="暹罗猫">暹罗猫</option>
+            <option value="波斯猫">波斯猫</option>
+            <option value="缅因猫">缅因猫</option>
+            <option value="苏格兰折耳猫">苏格兰折耳猫</option>
+            <option value="俄罗斯蓝猫">俄罗斯蓝猫</option>
+            <option value="加菲猫">加菲猫</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">性别</label>
+          <select class="form-select" id="catGender" onchange="saveProfile()">
+            <option value="">请选择</option>
+            <option value="公">公 🚹</option>
+            <option value="母">母 🚺</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">生日</label>
+          <input type="date" class="form-input" id="catBirthday" onchange="saveProfile()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">毛色</label>
+          <input type="text" class="form-input" id="catColor" placeholder="例如：橘白、三花" oninput="saveProfile()">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">性格特点</label>
+        <textarea class="form-textarea" id="catPersonality" placeholder="例如：粘人、贪吃、爱睡觉..." oninput="saveProfile()"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">其他备注</label>
+        <textarea class="form-textarea" id="catNote" placeholder="疫苗、过敏史等..." oninput="saveProfile()"></textarea>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-left">📦 数据管理</span></div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn btn-secondary" onclick="exportData()">📤 导出全部数据</button>
+        <button class="btn btn-outline" onclick="document.getElementById('importInput2').click()">📥 导入数据文件</button>
+        <button class="btn btn-outline" style="color: #e74c3c; border-color: #ffcdd2;" onclick="clearAllData()">🗑️ 清空所有数据</button>
+        <input type="file" id="importInput2" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<!-- 底部导航栏（手机端） -->
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+      <div class="nav-icon">📊</div>
+      <div>概览</div>
+    </div>
+    <div class="nav-item" data-page="diary" onclick="switchPage('diary')">
+      <div class="nav-icon">📝</div>
+      <div>日记</div>
+    </div>
+    <div class="nav-item" data-page="events" onclick="switchPage('events')">
+      <div class="nav-icon">🎉</div>
+      <div>纪念日</div>
+    </div>
+    <div class="nav-item" data-page="photos" onclick="switchPage('photos')">
+      <div class="nav-icon">📷</div>
+      <div>相册</div>
+    </div>
+    <div class="nav-item" data-page="backup" onclick="switchPage('backup')">
+      <div class="nav-icon">💾</div>
+      <div>备份</div>
+    </div>
+    <div class="nav-item" data-page="share" onclick="switchPage('share')">
+      <div class="nav-icon">👥</div>
+      <div>分享</div>
+    </div>
+    <div class="nav-item" data-page="profile" onclick="switchPage('profile')">
+      <div class="nav-icon">🐱</div>
+      <div>我的</div>
+    </div>
+  </div>
+</div>
+
+<!-- 浮动添加按钮 -->
+<button class="fab" onclick="showQuickAdd()" title="快速添加">+</button>
+
+<!-- 体重记录模态框 -->
+<div class="modal-overlay" id="weightModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚖️ 添加体重记录</div>
+      <button class="modal-close" onclick="closeModal('weightModal')">×</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">日期</label>
+        <input type="date" class="form-input" id="weightDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">体重 (kg)</label>
+        <input type="number" step="0.01" class="form-input" id="weightValue" placeholder="例如：3.5">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <input type="text" class="form-input" id="weightNote" placeholder="例如：刚吃完、体检时">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('weightModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveWeight()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 饮食记录模态框 -->
+<div class="modal-overlay" id="foodModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🍽️ 添加饮食记录</div>
+      <button class="modal-close" onclick="closeModal('foodModal')">×</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">日期</label>
+        <input type="date" class="form-input" id="foodDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">餐次</label>
+        <select class="form-select" id="foodMeal">
+          <option value="早餐">早餐 🌅</option>
+          <option value="午餐">午餐 ☀️</option>
+          <option value="晚餐">晚餐 🌙</option>
+          <option value="加餐">加餐 🎁</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">食物类型</label>
+        <select class="form-select" id="foodType">
+          <option value="猫粮">猫粮</option>
+          <option value="罐头">罐头</option>
+          <option value="冻干">冻干</option>
+          <option value="零食">零食</option>
+          <option value="自制">自制</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">食量 (g)</label>
+        <input type="number" class="form-input" id="foodAmount" placeholder="例如：50">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">进食情况</label>
+      <div class="tag-group" id="foodStatus">
+        <div class="tag active" data-value="正常" onclick="selectTag(this, 'foodStatus')">正常 😋</div>
+        <div class="tag" data-value="挑食" onclick="selectTag(this, 'foodStatus')">挑食 😒</div>
+        <div class="tag" data-value="吃很多" onclick="selectTag(this, 'foodStatus')">吃很多 🤤</div>
+        <div class="tag" data-value="没胃口" onclick="selectTag(this, 'foodStatus')">没胃口 😔</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <input type="text" class="form-input" id="foodNote" placeholder="例如：换了新牌子">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('foodModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveFood()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 日记模态框 -->
+<div class="modal-overlay" id="diaryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📝 写日记</div>
+      <button class="modal-close" onclick="closeModal('diaryModal')">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">日期</label>
+      <input type="date" class="form-input" id="diaryDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">今天的心情</label>
+      <div class="tag-group" id="diaryMood">
+        <div class="tag active" data-value="开心" onclick="selectTag(this, 'diaryMood')">开心 😺</div>
+        <div class="tag" data-value="调皮" onclick="selectTag(this, 'diaryMood')">调皮 😼</div>
+        <div class="tag" data-value="粘人" onclick="selectTag(this, 'diaryMood')">粘人 😻</div>
+        <div class="tag" data-value="慵懒" onclick="selectTag(this, 'diaryMood')">慵懒 😸</div>
+        <div class="tag" data-value="好奇" onclick="selectTag(this, 'diaryMood')">好奇 🙀</div>
+        <div class="tag" data-value="生气" onclick="selectTag(this, 'diaryMood')">生气 😾</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">今天发生了什么</label>
+      <textarea class="form-textarea" id="diaryContent" placeholder="记录小猫咪今天的趣事..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">添加照片 (可选)</label>
+      <input type="file" class="form-input" id="diaryPhotoInput" accept="image/*" multiple style="padding: 8px;" onchange="previewDiaryPhotos(event)">
+      <div id="diaryPhotoPreview" style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('diaryModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveDiary()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 纪念日模态框 -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎉 添加纪念日</div>
+      <button class="modal-close" onclick="closeModal('eventModal')">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">事件名称</label>
+      <input type="text" class="form-input" id="eventName" placeholder="例如：到家纪念日、生日">
+    </div>
+    <div class="form-group">
+      <label class="form-label">选择图标</label>
+      <div class="tag-group" id="eventIconGroup">
+        <div class="tag active" data-icon="🎉" onclick="selectEventIcon(this)">🎉</div>
+        <div class="tag" data-icon="🏠" onclick="selectEventIcon(this)">🏠</div>
+        <div class="tag" data-icon="🎂" onclick="selectEventIcon(this)">🎂</div>
+        <div class="tag" data-icon="💉" onclick="selectEventIcon(this)">💉</div>
+        <div class="tag" data-icon="🛁" onclick="selectEventIcon(this)">🛁</div>
+        <div class="tag" data-icon="✂️" onclick="selectEventIcon(this)">✂️</div>
+        <div class="tag" data-icon="🐛" onclick="selectEventIcon(this)">🐛</div>
+        <div class="tag" data-icon="🏥" onclick="selectEventIcon(this)">🏥</div>
+        <div class="tag" data-icon="🎁" onclick="selectEventIcon(this)">🎁</div>
+        <div class="tag" data-icon="🐾" onclick="selectEventIcon(this)">🐾</div>
+        <div class="tag" data-icon="❤️" onclick="selectEventIcon(this)">❤️</div>
+        <div class="tag" data-icon="⭐" onclick="selectEventIcon(this)">⭐</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">日期</label>
+      <input type="date" class="form-input" id="eventDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">卡片颜色</label>
+      <div class="tag-group" id="eventColorGroup">
+        <div class="tag active" data-color="pink" onclick="selectEventColor(this)" style="background: #FFEEE8;">粉色</div>
+        <div class="tag" data-color="green" onclick="selectEventColor(this)" style="background: #D0F5DE;">绿色</div>
+        <div class="tag" data-color="purple" onclick="selectEventColor(this)" style="background: #E8D5FF;">紫色</div>
+        <div class="tag" data-color="yellow" onclick="selectEventColor(this)" style="background: #FFF0CC;">黄色</div>
+        <div class="tag" data-color="blue" onclick="selectEventColor(this)" style="background: #D0E8FF;">蓝色</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">类型</label>
+      <div class="tag-group" id="eventTypeGroup">
+        <div class="tag active" data-type="past" onclick="selectTag(this, 'eventTypeGroup')">已过去 📅</div>
+        <div class="tag" data-type="future" onclick="selectTag(this, 'eventTypeGroup')">倒计时 ⏳</div>
+        <div class="tag" data-type="yearly" onclick="selectTag(this, 'eventTypeGroup')">每年重复 🎂</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注 (可选)</label>
+      <input type="text" class="form-input" id="eventNote" placeholder="写点什么...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('eventModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEvent()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 快速添加菜单 -->
+<div class="modal-overlay" id="quickAddModal">
+  <div class="action-sheet">
+    <div class="action-sheet-title">选择要添加的内容</div>
+    <button class="action-btn" onclick="closeModal('quickAddModal'); openWeightModal()">⚖️ 记录体重</button>
+    <button class="action-btn" onclick="closeModal('quickAddModal'); openFoodModal()">🍽️ 记录饮食</button>
+    <button class="action-btn" onclick="closeModal('quickAddModal'); openDiaryModal()">📝 写日记</button>
+    <button class="action-btn" onclick="closeModal('quickAddModal'); openEventModal()">🎉 添加纪念日</button>
+    <button class="action-btn" onclick="closeModal('quickAddModal'); switchPage('photos'); setTimeout(()=>document.getElementById('photoInput').click(),300)">📷 添加照片</button>
+    <button class="action-btn cancel" onclick="closeModal('quickAddModal')">取消</button>
+  </div>
+</div>
+
+<!-- 图片预览 -->
+<div class="image-preview" id="imagePreview" onclick="closeImagePreview()">
+  <button class="image-preview-close">×</button>
+  <img id="previewImage" src="" alt="">
+</div>
+
+<!-- 吐司提示 -->
+<div class="toast" id="toast"></div>
+
+<div class="footer-tip">
+  <div class="paw">🐾</div>
+  <div>每天记录一点，陪伴猫咪成长每一天~</div>
+</div>
+
+<script>
+// ========== 数据存储 ==========
+let appData = {
+  profile: {
+    name: '', breed: '', gender: '', birthday: '',
+    color: '', personality: '', note: '', avatar: ''
+  },
+  weights: [],
+  foods: [],
+  photos: [],
+  diaries: [],
+  events: []
+};
+
+let diaryPhotoTemp = [];
+const BACKUP_KEY = 'catDiaryBackups';
+const MAIN_KEY = 'catDiaryData';
+const MAX_BACKUPS = 7;
+
+// ========== 初始化 ==========
+function init() {
+  loadData();
+  checkDailyBackup();
+  renderAll();
+  updateBackupBadge();
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('weightDate').value = today;
+  document.getElementById('foodDate').value = today;
+  document.getElementById('diaryDate').value = today;
+}
+
+// ========== 数据加载与保存 ==========
+function loadData() {
+  const saved = localStorage.getItem(MAIN_KEY);
+  if (saved) {
+    try { appData = JSON.parse(saved); } catch(e) { console.error('数据加载失败', e); }
+  }
+}
+
+function saveData() {
+  localStorage.setItem(MAIN_KEY, JSON.stringify(appData));
+  checkDailyBackup();
+  renderAll();
+  updateBackupBadge();
+}
+
+// ========== 智能备份系统 ==========
+function checkDailyBackup() {
+  const today = new Date().toISOString().split('T')[0];
+  const lastBackup = localStorage.getItem('catDiaryLastBackup');
+  
+  if (lastBackup !== today) {
+    createBackup('daily');
+    localStorage.setItem('catDiaryLastBackup', today);
+  }
+}
+
+function createBackup(type = 'manual') {
+  const backups = getBackups();
+  const today = new Date().toISOString().split('T')[0];
+  
+  // 检查今天是否已有备份
+  const todayIndex = backups.findIndex(b => b.date === today);
+  
+  const backup = {
+    id: Date.now(),
+    date: today,
+    time: new Date().toLocaleTimeString('zh-CN'),
+    type: type,
+    data: JSON.parse(JSON.stringify(appData))
+  };
+  
+  if (todayIndex >= 0 && type === 'daily') {
+    // 更新今日备份
+    backups[todayIndex] = backup;
+  } else {
+    // 添加新备份
+    backups.unshift(backup);
+  }
+  
+  // 只保留最近 MAX_BACKUPS 个
+  while (backups.length > MAX_BACKUPS) {
+    backups.pop();
+  }
+  
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
+  renderBackupList();
+  return backup;
+}
+
+function getBackups() {
+  try {
+    return JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+  } catch(e) {
+    return [];
+  }
+}
+
+function restoreBackup(id) {
+  if (!confirm('确定要恢复此备份吗？当前数据将被覆盖。')) return;
+  
+  const backups = getBackups();
+  const backup = backups.find(b => b.id === id);
+  
+  if (backup) {
+    appData = JSON.parse(JSON.stringify(backup.data));
+    localStorage.setItem(MAIN_KEY, JSON.stringify(appData));
+    renderAll();
+    showToast('✅ 备份恢复成功');
+  }
+}
+
+function deleteBackup(id) {
+  if (!confirm('确定删除此备份吗？')) return;
+  
+  let backups = getBackups();
+  backups = backups.filter(b => b.id !== id);
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
+  renderBackupList();
+  showToast('备份已删除');
+}
+
+function renderBackupList() {
+  const backups = getBackups();
+  const container = document.getElementById('backupList');
+  const countEl = document.getElementById('backupCount');
+  const statusEl = document.getElementById('backupStatusText');
+  const lastTimeEl = document.getElementById('backupLastTime');
+  
+  countEl.textContent = backups.length + ' 个';
+  
+  if (backups.length > 0) {
+    const latest = backups[0];
+    statusEl.textContent = '数据安全';
+    lastTimeEl.textContent = `上次备份：${formatDate(latest.date)} ${latest.time}`;
+  } else {
+    statusEl.textContent = '暂无备份';
+    lastTimeEl.textContent = '数据仅存储在当前浏览器';
+  }
+  
+  if (backups.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="emoji">📦</div><p>暂无备份记录</p></div>';
+    return;
+  }
+  
+  container.innerHTML = backups.map(b => `
+    <div class="backup-item">
+      <div class="backup-icon">${b.type === 'daily' ? '📅' : '✋'}</div>
+      <div class="backup-info">
+        <div class="backup-name">${b.type === 'daily' ? '每日自动备份' : '手动备份'}</div>
+        <div class="backup-time">${formatDate(b.date)} ${b.time}</div>
+      </div>
+      <div class="backup-actions">
+        <button class="backup-btn restore" onclick="restoreBackup(${b.id})">恢复</button>
+        <button class="backup-btn delete" onclick="deleteBackup(${b.id})">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateBackupBadge() {
+  const backups = getBackups();
+  const badge = document.getElementById('backupBadge');
+  const today = new Date().toISOString().split('T')[0];
+  const hasTodayBackup = backups.some(b => b.date === today);
+  
+  badge.textContent = hasTodayBackup ? '💾 今日已备份' : '⚠️ 今日未备份';
+  badge.style.background = hasTodayBackup ? 'rgba(255,255,255,0.25)' : 'rgba(255,235,59,0.3)';
+}
+
+// ========== 页面切换 ==========
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  
+  document.getElementById('page-' + page).classList.add('active');
+  
+  const bottomNav = document.querySelector(`.bottom-nav .nav-item[data-page="${page}"]`);
+  if (bottomNav) bottomNav.classList.add('active');
+  
+  const topTab = document.querySelector(`.nav-tab[data-page="${page}"]`);
+  if (topTab) topTab.classList.add('active');
+  
+  // 更新标题
+  const titles = {
+    dashboard: '概览', weight: '体重记录', food: '饮食记录',
+    photos: '成长相册', diary: '成长日记', events: '重要纪念日',
+    backup: '备份管理', share: '分享协作', profile: '猫咪档案'
+  };
+  document.getElementById('headerTitle').textContent = titles[page] || '成长日记';
+  
+  window.scrollTo(0, 0);
+  
+  // 刷新图表
+  if (page === 'dashboard') setTimeout(() => drawChart('weightChart', appData.weights.slice(-10)), 50);
+  if (page === 'weight') setTimeout(() => drawChart('weightChartFull', appData.weights), 50);
+}
+
+// ========== 档案相关 ==========
+function renderProfile() {
+  const p = appData.profile;
+  document.getElementById('catName').value = p.name || '';
+  document.getElementById('catBreed').value = p.breed || '';
+  document.getElementById('catGender').value = p.gender || '';
+  document.getElementById('catBirthday').value = p.birthday || '';
+  document.getElementById('catColor').value = p.color || '';
+  document.getElementById('catPersonality').value = p.personality || '';
+  document.getElementById('catNote').value = p.note || '';
+  
+  // 头像
+  const setAvatar = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (p.avatar) {
+      el.innerHTML = `<img src="${p.avatar}" alt="头像">`;
+    } else {
+      el.innerHTML = '<span>🐱</span>';
+    }
+  };
+  setAvatar('profileAvatar');
+  setAvatar('dashAvatar');
+  setAvatar('headerAvatar');
+}
+
+function saveProfile() {
+  appData.profile.name = document.getElementById('catName').value;
+  appData.profile.breed = document.getElementById('catBreed').value;
+  appData.profile.gender = document.getElementById('catGender').value;
+  appData.profile.birthday = document.getElementById('catBirthday').value;
+  appData.profile.color = document.getElementById('catColor').value;
+  appData.profile.personality = document.getElementById('catPersonality').value;
+  appData.profile.note = document.getElementById('catNote').value;
+  saveData();
+}
+
+function handleAvatarUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      appData.profile.avatar = e.target.result;
+      saveData();
+      showToast('头像已更新');
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function calculateAge() {
+  if (!appData.profile.birthday) return '--';
+  const birth = new Date(appData.profile.birthday);
+  const now = new Date();
+  const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+  if (months < 0) return '--';
+  if (months < 12) return months + '个月';
+  const years = Math.floor(months / 12);
+  const remainMonths = months % 12;
+  return remainMonths > 0 ? `${years}岁${remainMonths}月` : `${years}岁`;
+}
+
+// ========== 概览 ==========
+function renderDashboard() {
+  const p = appData.profile;
+  document.getElementById('dashName').textContent = p.name || '我的小猫咪';
+  document.getElementById('dashBreed').textContent = p.breed || '点击档案设置猫咪信息';
+  document.getElementById('statAge').textContent = calculateAge();
+  document.getElementById('statRecords').textContent = appData.diaries.length;
+  document.getElementById('statPhotos').textContent = appData.photos.length;
+  document.getElementById('photoCount').textContent = appData.photos.length + ' 张';
+  
+  const sortedWeights = [...appData.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+  document.getElementById('statWeight').textContent = sortedWeights.length > 0 ? sortedWeights[0].value + ' kg' : '--';
+  
+  drawChart('weightChart', appData.weights.slice(-10));
+  
+  // 最近纪念日
+  var dashEvents = document.getElementById('dashEvents');
+  if (dashEvents) {
+    var eventsWithDays = appData.events.map(function(e) {
+      return { event: e, days: getEventDays(e) };
+    });
+    var upcomingE = eventsWithDays.filter(function(x) { return x.days >= 0; }).sort(function(a, b) { return a.days - b.days; });
+    var pastE = eventsWithDays.filter(function(x) { return x.days < 0; }).sort(function(a, b) { return b.days - a.days; });
+    var topEvents = upcomingE.concat(pastE).slice(0, 3);
+    
+    if (topEvents.length === 0) {
+      dashEvents.innerHTML = '<div class="empty-state" style="padding: 15px;"><div class="emoji" style="font-size: 2rem;">🎉</div><p style="font-size: 0.8rem;">还没有纪念日</p></div>';
+    } else {
+      dashEvents.innerHTML = topEvents.map(function(item) {
+        var e = item.event;
+        var days = item.days;
+        var isToday = days === 0;
+        var displayDays = isToday ? '今天' : (days > 0 ? '还有' + days + '天' : '已' + Math.abs(days) + '天');
+        return `
+          <div class="record-item" style="cursor:pointer" onclick="switchPage('events')">
+            <div class="record-icon">${e.icon}</div>
+            <div class="record-content">
+              <div class="record-title">${e.name}</div>
+              <div class="record-desc">${formatEventDate(e.date, e.type)}</div>
+            </div>
+            <div class="record-date" style="color: ${isToday ? 'var(--primary-dark)' : 'var(--text-light)'}; font-weight: ${isToday ? '600' : '400'};">
+              ${displayDays}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+  
+  const recent = [...appData.diaries].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
+  const container = document.getElementById('recentDiary');
+  if (recent.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="emoji">📝</div><p>还没有日记，快来记录吧~</p></div>';
+  } else {
+    container.innerHTML = recent.map(d => `
+      <div class="record-item" style="cursor:pointer" onclick="switchPage('diary')">
+        <div class="record-icon">📔</div>
+        <div class="record-content">
+          <div class="record-title">${d.content.substring(0, 25)}${d.content.length > 25 ? '...' : ''}</div>
+          <div class="record-desc">${d.mood || ''}</div>
+        </div>
+        <div class="record-date">${formatDate(d.date)}</div>
+      </div>
+    `).join('');
+  }
+}
+
+// ========== 体重 ==========
+function openWeightModal() {
+  document.getElementById('weightModal').classList.add('active');
+  document.getElementById('weightDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('weightValue').value = '';
+  document.getElementById('weightNote').value = '';
+}
+
+function saveWeight() {
+  const date = document.getElementById('weightDate').value;
+  const value = parseFloat(document.getElementById('weightValue').value);
+  const note = document.getElementById('weightNote').value;
+  
+  if (!date || !value) { showToast('请填写日期和体重'); return; }
+  
+  appData.weights.push({ id: Date.now(), date, value, note });
+  appData.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
+  saveData();
+  closeModal('weightModal');
+  showToast('✅ 体重记录已保存');
+}
+
+function deleteWeight(id) {
+  if (!confirm('确定删除这条记录吗？')) return;
+  appData.weights = appData.weights.filter(w => w.id !== id);
+  saveData();
+}
+
+function renderWeight() {
+  const list = document.getElementById('weightList');
+  const sorted = [...appData.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="emoji">⚖️</div><p>还没有体重记录</p></div>';
+  } else {
+    list.innerHTML = sorted.map(w => `
+      <div class="record-item">
+        <div class="record-icon">⚖️</div>
+        <div class="record-content">
+          <div class="record-title">${w.value} kg</div>
+          <div class="record-desc">${w.note || '无备注'}</div>
+        </div>
+        <div class="record-date">${formatDate(w.date)}</div>
+        <button class="record-delete" onclick="deleteWeight(${w.id})">×</button>
+      </div>
+    `).join('');
+  }
+  
+  drawChart('weightChartFull', appData.weights);
+}
+
+// ========== 饮食 ==========
+function openFoodModal() {
+  document.getElementById('foodModal').classList.add('active');
+  document.getElementById('foodDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('foodAmount').value = '';
+  document.getElementById('foodNote').value = '';
+  selectTag(document.querySelector('#foodStatus .tag'), 'foodStatus');
+}
+
+function saveFood() {
+  const date = document.getElementById('foodDate').value;
+  const meal = document.getElementById('foodMeal').value;
+  const type = document.getElementById('foodType').value;
+  const amount = document.getElementById('foodAmount').value;
+  const status = document.querySelector('#foodStatus .tag.active')?.dataset.value || '正常';
+  const note = document.getElementById('foodNote').value;
+  
+  if (!date) { showToast('请选择日期'); return; }
+  
+  appData.foods.push({ id: Date.now(), date, meal, type, amount, status, note });
+  appData.foods.sort((a, b) => new Date(b.date) - new Date(a.date));
+  saveData();
+  closeModal('foodModal');
+  showToast('✅ 饮食记录已保存');
+}
+
+function deleteFood(id) {
+  if (!confirm('确定删除这条记录吗？')) return;
+  appData.foods = appData.foods.filter(f => f.id !== id);
+  saveData();
+}
+
+function renderFood() {
+  const list = document.getElementById('foodList');
+  
+  if (appData.foods.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="emoji">🍽️</div><p>还没有饮食记录</p></div>';
+    return;
+  }
+  
+  list.innerHTML = appData.foods.map(f => `
+    <div class="record-item">
+      <div class="record-icon">${getFoodIcon(f.type)}</div>
+      <div class="record-content">
+        <div class="record-title">${f.meal} · ${f.type} ${f.amount ? f.amount + 'g' : ''}</div>
+        <div class="record-desc">${f.status} ${f.note ? '· ' + f.note : ''}</div>
+      </div>
+      <div class="record-date">${formatDate(f.date)}</div>
+      <button class="record-delete" onclick="deleteFood(${f.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function getFoodIcon(type) {
+  const icons = { 猫粮: '🥣', 罐头: '🥫', 冻干: '🍪', 零食: '🍬', 自制: '🍳', 其他: '🍽️' };
+  return icons[type] || '🍽️';
+}
+
+// ========== 相册 ==========
+function handlePhotoUpload(event) {
+  const files = event.target.files;
+  let count = 0;
+  const total = files.length;
+  
+  Array.from(files).forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const caption = total === 1 ? prompt('给这张照片加个描述吧~（可选）', '') : '';
+      appData.photos.push({
+        id: Date.now() + index,
+        src: e.target.result,
+        caption: caption || '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      count++;
+      if (count === total) {
+        saveData();
+        showToast(`✅ 已添加 ${total} 张照片`);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+
+function deletePhoto(id, event) {
+  event.stopPropagation();
+  if (!confirm('确定删除这张照片吗？')) return;
+  appData.photos = appData.photos.filter(p => p.id !== id);
+  saveData();
+}
+
+function previewPhoto(src) {
+  document.getElementById('previewImage').src = src;
+  document.getElementById('imagePreview').classList.add('active');
+}
+
+function closeImagePreview() {
+  document.getElementById('imagePreview').classList.remove('active');
+}
+
+function renderPhotos() {
+  const grid = document.getElementById('photoGrid');
+  const photos = [...appData.photos].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  let html = `<div class="add-photo" onclick="document.getElementById('photoInput').click()">
+    <div class="plus">+</div>
+    <div class="label">添加照片</div>
+  </div>`;
+  
+  photos.forEach(p => {
+    html += `
+      <div class="photo-item" onclick="previewPhoto('${p.src}')">
+        <img src="${p.src}" alt="${p.caption || ''}">
+        <button class="photo-delete" onclick="deletePhoto(${p.id}, event)">×</button>
+        ${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ''}
+      </div>
+    `;
+  });
+  
+  grid.innerHTML = html;
+}
+
+// ========== 日记 ==========
+function openDiaryModal() {
+  document.getElementById('diaryModal').classList.add('active');
+  document.getElementById('diaryDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('diaryContent').value = '';
+  document.getElementById('diaryPhotoPreview').innerHTML = '';
+  diaryPhotoTemp = [];
+  selectTag(document.querySelector('#diaryMood .tag'), 'diaryMood');
+}
+
+function previewDiaryPhotos(event) {
+  const files = event.target.files;
+  const preview = document.getElementById('diaryPhotoPreview');
+  diaryPhotoTemp = [];
+  
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      diaryPhotoTemp.push(e.target.result);
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width: 60px; height: 60px; border-radius: 8px; object-fit: cover;';
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function saveDiary() {
+  const date = document.getElementById('diaryDate').value;
+  const content = document.getElementById('diaryContent').value.trim();
+  const mood = document.querySelector('#diaryMood .tag.active')?.dataset.value || '开心';
+  
+  if (!date || !content) { showToast('请填写日期和内容'); return; }
+  
+  appData.diaries.push({
+    id: Date.now(), date, content, mood,
+    photos: [...diaryPhotoTemp]
+  });
+  appData.diaries.sort((a, b) => new Date(b.date) - new Date(a.date));
+  saveData();
+  closeModal('diaryModal');
+  showToast('✅ 日记已保存');
+}
+
+function deleteDiary(id) {
+  if (!confirm('确定删除这篇日记吗？')) return;
+  appData.diaries = appData.diaries.filter(d => d.id !== id);
+  saveData();
+}
+
+function renderDiary() {
+  const list = document.getElementById('diaryList');
+  
+  if (appData.diaries.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding: 20px 0;"><div class="emoji">📔</div><p>还没有日记，记录下美好时光吧~</p></div>';
+    return;
+  }
+  
+  list.innerHTML = appData.diaries.map(d => `
+    <div class="diary-item">
+      <div class="diary-date">
+        📅 ${formatDate(d.date)}
+        <span class="diary-mood">${getMoodEmoji(d.mood)} ${d.mood}</span>
+      </div>
+      <div class="diary-content">${d.content.replace(/\n/g, '<br>')}</div>
+      ${d.photos && d.photos.length > 0 ? `
+        <div class="diary-images">
+          ${d.photos.map(src => `<img src="${src}" onclick="previewPhoto('${src}')">`).join('')}
+        </div>
+      ` : ''}
+      <div style="text-align: right; margin-top: 10px;">
+        <button class="record-delete" style="font-size: 0.8rem;" onclick="deleteDiary(${d.id})">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getMoodEmoji(mood) {
+  const moods = { 开心: '😺', 调皮: '😼', 粘人: '😻', 慵懒: '😸', 好奇: '🙀', 生气: '😾' };
+  return moods[mood] || '😺';
+}
+
+// ========== 标签选择 ==========
+function selectTag(el, groupId) {
+  document.querySelectorAll(`#${groupId} .tag`).forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ========== 图表绘制 ==========
+function drawChart(canvasId, data) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  const rect = canvas.parentElement.getBoundingClientRect();
+  if (rect.width === 0) return;
+  
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  ctx.scale(2, 2);
+  
+  const width = rect.width;
+  const height = rect.height;
+  const padding = { top: 20, right: 15, bottom: 28, left: 35 };
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+  
+  ctx.clearRect(0, 0, width, height);
+  
+  if (data.length === 0) {
+    ctx.fillStyle = '#bbb';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('暂无数据，点击 + 添加记录', width / 2, height / 2);
+    return;
+  }
+  
+  const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const values = sortedData.map(d => d.value);
+  const minVal = Math.min(...values) * 0.95;
+  const maxVal = Math.max(...values) * 1.05;
+  const range = maxVal - minVal || 1;
+  
+  // 网格线
+  ctx.strokeStyle = '#f5f0ed';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padding.top + (chartH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(width - padding.right, y);
+    ctx.stroke();
+    
+    const val = maxVal - (range / 4) * i;
+    ctx.fillStyle = '#aaa';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(1), padding.left - 5, y + 3);
+  }
+  
+  // 数据点
+  const points = sortedData.map((d, i) => {
+    const x = padding.left + (chartW / Math.max(sortedData.length - 1, 1)) * i;
+    const y = padding.top + chartH - ((d.value - minVal) / range) * chartH;
+    return { x, y, d };
+  });
+  
+  // 渐变填充
+  const gradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
+  gradient.addColorStop(0, 'rgba(255, 154, 139, 0.35)');
+  gradient.addColorStop(1, 'rgba(255, 154, 139, 0.02)');
+  
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, height - padding.bottom);
+  points.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(points[points.length - 1].x, height - padding.bottom);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // 折线
+  ctx.beginPath();
+  points.forEach((p, i) => {
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  });
+  ctx.strokeStyle = '#FF6B6B';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  
+  // 数据点
+  points.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    ctx.strokeStyle = '#FF6B6B';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+  
+  // X轴日期
+  const maxLabels = Math.min(6, sortedData.length);
+  const step = Math.max(1, Math.floor(sortedData.length / maxLabels));
+  ctx.fillStyle = '#aaa';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  
+  sortedData.forEach((d, i) => {
+    if (i % step === 0 || i === sortedData.length - 1) {
+      const x = padding.left + (chartW / Math.max(sortedData.length - 1, 1)) * i;
+      const dateStr = d.date.substring(5);
+      ctx.fillText(dateStr, x, height - 10);
+    }
+  });
+}
+
+// ========== 快速添加 ==========
+function showQuickAdd() {
+  document.getElementById('quickAddModal').classList.add('active');
+}
+
+// ========== 模态框 ==========
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this && this.id !== 'quickAddModal') {
+      this.classList.remove('active');
+    }
+  });
+});
+
+// ========== 工具函数 ==========
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const diff = Math.floor((today - target) / (1000 * 60 * 60 * 24));
+  
+  if (diff === 0) return '今天';
+  if (diff === 1) return '昨天';
+  if (diff < 7) return diff + '天前';
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ========== 导出导入 ==========
+function exportData() {
+  createBackup('manual');
+  const dataStr = JSON.stringify(appData, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const catName = appData.profile.name || '猫咪';
+  a.href = url;
+  a.download = `${catName}日记_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 备份文件已导出');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!confirm('导入后将覆盖现有数据，确定继续吗？')) return;
+      
+      // 先备份当前数据
+      createBackup('manual');
+      
+      appData = data;
+      localStorage.setItem(MAIN_KEY, JSON.stringify(appData));
+      renderAll();
+      showToast('✅ 导入成功');
+    } catch (err) {
+      showToast('❌ 文件格式错误');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function clearAllData() {
+  if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
+  if (!confirm('再次确认：真的要删除所有记录吗？')) return;
+  
+  // 先备份
+  createBackup('manual');
+  
+  appData = {
+    profile: { name: '', breed: '', gender: '', birthday: '', color: '', personality: '', note: '', avatar: '' },
+    weights: [], foods: [], photos: [], diaries: []
+  };
+  localStorage.setItem(MAIN_KEY, JSON.stringify(appData));
+  renderAll();
+  showToast('数据已清空（已自动备份）');
+}
+
+// ========== PWA 安装 ==========
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  var btn = document.getElementById('installBtnContainer');
+  if (btn) btn.style.display = 'block';
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choiceResult) {
+      if (choiceResult.outcome === 'accepted') {
+        showToast('🎉 安装成功！');
+      }
+      deferredPrompt = null;
+      var btn = document.getElementById('installBtnContainer');
+      if (btn) btn.style.display = 'none';
+    });
+  } else {
+    showToast('请使用浏览器菜单添加到桌面');
+  }
+}
+
+// 检测是否已安装为PWA
+function checkInstalled() {
+  if (window.matchMedia('(display-mode: standalone)').matches || 
+      window.navigator.standalone === true) {
+    var btn = document.getElementById('installBtnContainer');
+    if (btn) btn.style.display = 'none';
+  }
+}
+
+// ========== 分享功能 ==========
+function shareDataFile() {
+  createBackup('manual');
+  var dataStr = JSON.stringify(appData);
+  var blob = new Blob([dataStr], { type: 'application/json' });
+  var catName = appData.profile.name || '猫咪';
+  var fileName = catName + '日记_' + new Date().toISOString().split('T')[0] + '.json';
+  
+  if (navigator.share && navigator.canShare) {
+    var file = new File([blob], fileName, { type: 'application/json' });
+    if (navigator.canShare({ files: [file] })) {
+      navigator.share({
+        title: '🐱 小猫咪成长日记',
+        text: '来看看我家小猫咪的成长记录吧~',
+        files: [file]
+      }).then(function() {
+        showToast('✅ 分享成功');
+      }).catch(function() {
+        downloadShareFile(blob, fileName);
+      });
+      return;
+    }
+  }
+  
+  downloadShareFile(blob, fileName);
+}
+
+function downloadShareFile(blob, fileName) {
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 文件已导出，发送给家人吧~');
+}
+
+function exportForShare() {
+  exportData();
+}
+
+function importShareData(event) {
+  importData(event);
+}
+
+function copyShareLink() {
+  var url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(function() {
+      showToast('✅ 链接已复制');
+    }).catch(function() {
+      fallbackCopy(url);
+    });
+  } else {
+    fallbackCopy(url);
+  }
+}
+
+function fallbackCopy(text) {
+  var textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    showToast('✅ 链接已复制');
+  } catch(e) {
+    showToast('复制失败，请手动复制');
+  }
+  document.body.removeChild(textarea);
+}
+
+// ========== 二维码生成（简易版） ==========
+function showQRCode() {
+  var modal = document.getElementById('qrCodeModal');
+  if (modal.style.display === 'block') {
+    modal.style.display = 'none';
+    return;
+  }
+  
+  generateSimpleQR(window.location.href);
+  modal.style.display = 'block';
+}
+
+function generateSimpleQR(text) {
+  var canvas = document.getElementById('qrCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var size = 200;
+  
+  // 简易二维码占位 - 实际使用时可以集成QRCode库
+  // 这里画一个装饰性的图案代替
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, size, size);
+  
+  ctx.fillStyle = '#FF6B6B';
+  
+  // 三个定位角
+  var cornerSize = 50;
+  var cornerX = [10, size - cornerSize - 10, 10];
+  var cornerY = [10, 10, size - cornerSize - 10];
+  
+  for (var i = 0; i < 3; i++) {
+    // 外框
+    ctx.fillRect(cornerX[i], cornerY[i], cornerSize, cornerSize);
+    // 内白
+    ctx.fillStyle = 'white';
+    ctx.fillRect(cornerX[i] + 8, cornerY[i] + 8, cornerSize - 16, cornerSize - 16);
+    ctx.fillStyle = '#FF6B6B';
+    // 中心方块
+    ctx.fillRect(cornerX[i] + 16, cornerY[i] + 16, cornerSize - 32, cornerSize - 32);
+  }
+  
+  // 中间画个猫咪
+  ctx.fillStyle = '#FF6B6B';
+  ctx.font = '40px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🐱', size / 2, size / 2);
+  
+  // 装饰点
+  ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
+  for (var j = 0; j < 20; j++) {
+    var rx = 70 + Math.random() * 60;
+    var ry = 70 + Math.random() * 60;
+    var rs = 3 + Math.random() * 4;
+    ctx.fillRect(rx, ry, rs, rs);
+  }
+}
+
+// ========== 纪念日功能 ==========
+function openEventModal() {
+  document.getElementById('eventModal').classList.add('active');
+  document.getElementById('eventName').value = '';
+  document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('eventNote').value = '';
+  // 重置默认选择
+  selectEventIcon(document.querySelector('#eventIconGroup .tag[data-icon="🎉"]'));
+  selectEventColor(document.querySelector('#eventColorGroup .tag[data-color="pink"]'));
+  selectTag(document.querySelector('#eventTypeGroup .tag[data-type="past"]'), 'eventTypeGroup');
+}
+
+function selectEventIcon(el) {
+  document.querySelectorAll('#eventIconGroup .tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function selectEventColor(el) {
+  document.querySelectorAll('#eventColorGroup .tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function quickAddEvent(name, icon) {
+  document.getElementById('eventModal').classList.add('active');
+  document.getElementById('eventName').value = name;
+  document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('eventNote').value = '';
+  
+  // 选择对应图标
+  var iconTag = document.querySelector('#eventIconGroup .tag[data-icon="' + icon + '"]');
+  if (iconTag) selectEventIcon(iconTag);
+  
+  // 根据名称猜测类型
+  if (name.indexOf('下次') >= 0 || name.indexOf('体检') >= 0) {
+    selectTag(document.querySelector('#eventTypeGroup .tag[data-type="future"]'), 'eventTypeGroup');
+    selectEventColor(document.querySelector('#eventColorGroup .tag[data-color="green"]'));
+  } else if (name.indexOf('生日') >= 0) {
+    selectTag(document.querySelector('#eventTypeGroup .tag[data-type="yearly"]'), 'eventTypeGroup');
+    selectEventColor(document.querySelector('#eventColorGroup .tag[data-color="yellow"]'));
+  } else {
+    selectTag(document.querySelector('#eventTypeGroup .tag[data-type="past"]'), 'eventTypeGroup');
+    selectEventColor(document.querySelector('#eventColorGroup .tag[data-color="pink"]'));
+  }
+}
+
+function saveEvent() {
+  var name = document.getElementById('eventName').value.trim();
+  var date = document.getElementById('eventDate').value;
+  var icon = document.querySelector('#eventIconGroup .tag.active')?.dataset.icon || '🎉';
+  var color = document.querySelector('#eventColorGroup .tag.active')?.dataset.color || 'pink';
+  var type = document.querySelector('#eventTypeGroup .tag.active')?.dataset.type || 'past';
+  var note = document.getElementById('eventNote').value.trim();
+  
+  if (!name || !date) {
+    showToast('请填写事件名称和日期');
+    return;
+  }
+  
+  appData.events.push({
+    id: Date.now(),
+    name: name,
+    date: date,
+    icon: icon,
+    color: color,
+    type: type,
+    note: note
+  });
+  
+  // 按日期排序（未来的在前，然后按距离今天的远近）
+  appData.events.sort(function(a, b) {
+    var aDays = getEventDays(a);
+    var bDays = getEventDays(b);
+    return aDays - bDays;
+  });
+  
+  saveData();
+  closeModal('eventModal');
+  showToast('✅ 纪念日已添加');
+}
+
+function deleteEvent(id) {
+  event.stopPropagation();
+  if (!confirm('确定删除这个纪念日吗？')) return;
+  appData.events = appData.events.filter(function(e) { return e.id !== id; });
+  saveData();
+}
+
+function getEventDays(eventObj) {
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var eventDate = new Date(eventObj.date);
+  eventDate.setHours(0, 0, 0, 0);
+  
+  if (eventObj.type === 'yearly') {
+    // 每年重复：计算距离下一个生日/纪念日的天数
+    var thisYear = new Date(today.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+    if (thisYear < today) {
+      thisYear.setFullYear(today.getFullYear() + 1);
+    }
+    return Math.ceil((thisYear - today) / (1000 * 60 * 60 * 24));
+  }
+  
+  var diff = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+function formatEventDate(dateStr, type) {
+  var d = new Date(dateStr);
+  var year = d.getFullYear();
+  var month = d.getMonth() + 1;
+  var day = d.getDate();
+  var weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  var weekDay = weekDays[d.getDay()];
+  
+  if (type === 'yearly') {
+    return month + '月' + day + '日 ' + weekDay + '（每年）';
+  }
+  return year + '年' + month + '月' + day + '日 ' + weekDay;
+}
+
+function renderEvents() {
+  var container = document.getElementById('eventList');
+  
+  if (appData.events.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding: 30px 20px;"><div class="emoji">🎉</div><p>还没有纪念日，点击上方添加吧~</p></div>';
+    return;
+  }
+  
+  // 分类：未来的在前，过去的在后
+  var upcoming = [];
+  var past = [];
+  
+  appData.events.forEach(function(e) {
+    var days = getEventDays(e);
+    if (days >= 0) {
+      upcoming.push({ event: e, days: days });
+    } else {
+      past.push({ event: e, days: days });
+    }
+  });
+  
+  // 排序：未来的按升序（近的在前），过去的按降序（近的在前）
+  upcoming.sort(function(a, b) { return a.days - b.days; });
+  past.sort(function(a, b) { return b.days - a.days; });
+  
+  var all = upcoming.concat(past);
+  
+  container.innerHTML = all.map(function(item) {
+    var e = item.event;
+    var days = item.days;
+    var isToday = days === 0;
+    var colorClass = '';
+    var daysText = '';
+    var subText = '';
+    
+    // 颜色
+    if (e.color === 'green') colorClass = 'upcoming';
+    else if (e.color === 'purple') colorClass = 'purple';
+    else if (e.color === 'yellow') colorClass = 'yellow';
+    else if (e.color === 'blue') colorClass = 'blue';
+    
+    // 天数文字
+    if (e.type === 'yearly') {
+      if (isToday) {
+        daysText = '就是今天！';
+        subText = '🎂 祝' + e.name + '快乐！';
+      } else {
+        daysText = '还有 ' + days + ' 天';
+        subText = '距离今年的' + e.name;
+      }
+    } else if (e.type === 'future') {
+      if (isToday) {
+        daysText = '就是今天！';
+        subText = '别忘了哦~';
+      } else {
+        daysText = '还有 ' + days + ' 天';
+        subText = '距离' + e.name;
+      }
+    } else {
+      // past
+      if (isToday) {
+        daysText = '就是今天！';
+        subText = '今天发生的大事~';
+      } else {
+        daysText = '已经 ' + Math.abs(days) + ' 天';
+        subText = '自从' + e.name;
+      }
+    }
+    
+    return `
+      <div class="event-card ${colorClass}">
+        <div class="event-top">
+          <div class="event-icon">${e.icon}</div>
+          <button class="event-delete" onclick="deleteEvent(${e.id}, event)">×</button>
+        </div>
+        <div class="event-name">${e.name}</div>
+        <div class="event-date">${formatEventDate(e.date, e.type)}</div>
+        <div class="event-days">
+          <span class="event-days-num">${isToday ? '🎊' : Math.abs(days)}</span>
+          <span class="event-days-text">${isToday ? '' : daysText.replace(/\d+ 天/, '')}</span>
+        </div>
+        ${e.note ? `<div class="event-days-sub">💬 ${e.note}</div>` : ''}
+        ${subText ? `<div class="event-days-sub">📌 ${subText}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// ========== 渲染所有 ==========
+function renderAll() {
+  renderProfile();
+  renderDashboard();
+  renderWeight();
+  renderFood();
+  renderPhotos();
+  renderDiary();
+  renderEvents();
+  renderBackupList();
+}
+
+// ========== 窗口大小变化 ==========
+let resizeTimer;
+window.addEventListener('resize', function() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    drawChart('weightChart', appData.weights.slice(-10));
+    drawChart('weightChartFull', appData.weights);
+  }, 200);
+});
+
+// 启动
+init();
+checkInstalled();
+</script>
+</body>
+</html>
