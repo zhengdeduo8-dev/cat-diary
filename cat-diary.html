@@ -1041,6 +1041,78 @@
     background: #FFF5F2;
   }
   
+  /* 饮食汇总 */
+  .food-summary-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .food-summary-item {
+    flex: 1;
+    text-align: center;
+    padding: 14px 8px;
+    background: #FFFBF9;
+    border-radius: 14px;
+  }
+  
+  .food-summary-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.2;
+  }
+  
+  .food-summary-label {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+  
+  /* 每日饮食分组 */
+  .food-day-group {
+    margin-bottom: 18px;
+  }
+  
+  .food-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 4px;
+    margin-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  
+  .food-day-date {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  
+  .food-day-total {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    background: #FFF5F2;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+  
+  .food-time-badge {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    background: #F0F0F0;
+    padding: 2px 8px;
+    border-radius: 8px;
+    margin-right: 6px;
+  }
+  
+  .food-amount-badge {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  
   /* 吐司提示 */
   .toast {
     position: fixed;
@@ -1225,9 +1297,30 @@
   <!-- 饮食页 -->
   <div class="page" id="page-food">
     <div class="card">
+      <div class="card-title"><span class="card-title-left">📊 进食趋势</span></div>
+      <div class="chart-container">
+        <canvas id="foodChart" height="180"></canvas>
+      </div>
+      <div class="food-summary-row">
+        <div class="food-summary-item">
+          <div class="food-summary-num" id="foodTodayTotal">0</div>
+          <div class="food-summary-label">今日总进食 (g)</div>
+        </div>
+        <div class="food-summary-item">
+          <div class="food-summary-num" id="food7dayAvg">0</div>
+          <div class="food-summary-label">7天平均 (g/天)</div>
+        </div>
+        <div class="food-summary-item">
+          <div class="food-summary-num" id="foodMealCount">0</div>
+          <div class="food-summary-label">今日餐数</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
       <div class="card-title">
-        <span class="card-title-left">🍽️ 饮食记录</span>
-        <button class="btn btn-primary btn-small" onclick="openFoodModal()">+ 添加</button>
+        <span class="card-title-left">🍽️ 每日进食记录</span>
+        <button class="btn btn-primary btn-small" onclick="openFoodModal()">+ 喂食</button>
       </div>
       <div id="foodList"></div>
     </div>
@@ -1583,7 +1676,7 @@
 <div class="modal-overlay" id="foodModal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">🍽️ 添加饮食记录</div>
+      <div class="modal-title">🍽️ 记录喂食</div>
       <button class="modal-close" onclick="closeModal('foodModal')">×</button>
     </div>
     <div class="form-row">
@@ -1592,30 +1685,35 @@
         <input type="date" class="form-input" id="foodDate">
       </div>
       <div class="form-group">
-        <label class="form-label">餐次</label>
-        <select class="form-select" id="foodMeal">
-          <option value="早餐">早餐 🌅</option>
-          <option value="午餐">午餐 ☀️</option>
-          <option value="晚餐">晚餐 🌙</option>
-          <option value="加餐">加餐 🎁</option>
-        </select>
+        <label class="form-label">时间</label>
+        <input type="time" class="form-input" id="foodTime">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">食物类型</label>
         <select class="form-select" id="foodType">
-          <option value="猫粮">猫粮</option>
-          <option value="罐头">罐头</option>
-          <option value="冻干">冻干</option>
-          <option value="零食">零食</option>
-          <option value="自制">自制</option>
-          <option value="其他">其他</option>
+          <option value="猫粮">猫粮 🥣</option>
+          <option value="罐头">罐头 🥫</option>
+          <option value="冻干">冻干 🍪</option>
+          <option value="零食">零食 🍬</option>
+          <option value="湿粮">湿粮 🍲</option>
+          <option value="自制">自制 🍳</option>
+          <option value="其他">其他 🍽️</option>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">食量 (g)</label>
+        <label class="form-label">克重 (g)</label>
         <input type="number" class="form-input" id="foodAmount" placeholder="例如：50">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">餐次 (可选)</label>
+      <div class="tag-group" id="foodMeal">
+        <div class="tag" data-value="早餐" onclick="selectTag(this, 'foodMeal')">早餐 🌅</div>
+        <div class="tag" data-value="午餐" onclick="selectTag(this, 'foodMeal')">午餐 ☀️</div>
+        <div class="tag" data-value="晚餐" onclick="selectTag(this, 'foodMeal')">晚餐 🌙</div>
+        <div class="tag" data-value="加餐" onclick="selectTag(this, 'foodMeal')">加餐 🎁</div>
       </div>
     </div>
     <div class="form-group">
@@ -1623,13 +1721,13 @@
       <div class="tag-group" id="foodStatus">
         <div class="tag active" data-value="正常" onclick="selectTag(this, 'foodStatus')">正常 😋</div>
         <div class="tag" data-value="挑食" onclick="selectTag(this, 'foodStatus')">挑食 😒</div>
-        <div class="tag" data-value="吃很多" onclick="selectTag(this, 'foodStatus')">吃很多 🤤</div>
+        <div class="tag" data-value="吃光了" onclick="selectTag(this, 'foodStatus')">吃光了 🤤</div>
         <div class="tag" data-value="没胃口" onclick="selectTag(this, 'foodStatus')">没胃口 😔</div>
       </div>
     </div>
     <div class="form-group">
       <label class="form-label">备注</label>
-      <input type="text" class="form-input" id="foodNote" placeholder="例如：换了新牌子">
+      <input type="text" class="form-input" id="foodNote" placeholder="例如：换了新牌子、剩了一半">
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('foodModal')">取消</button>
@@ -2147,58 +2245,284 @@ function renderWeight() {
 // ========== 饮食 ==========
 function openFoodModal() {
   document.getElementById('foodModal').classList.add('active');
-  document.getElementById('foodDate').value = new Date().toISOString().split('T')[0];
+  var now = new Date();
+  document.getElementById('foodDate').value = now.toISOString().split('T')[0];
+  document.getElementById('foodTime').value = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
   document.getElementById('foodAmount').value = '';
   document.getElementById('foodNote').value = '';
+  // 清空餐次选择
+  document.querySelectorAll('#foodMeal .tag').forEach(t => t.classList.remove('active'));
   selectTag(document.querySelector('#foodStatus .tag'), 'foodStatus');
 }
 
 function saveFood() {
-  const date = document.getElementById('foodDate').value;
-  const meal = document.getElementById('foodMeal').value;
-  const type = document.getElementById('foodType').value;
-  const amount = document.getElementById('foodAmount').value;
-  const status = document.querySelector('#foodStatus .tag.active')?.dataset.value || '正常';
-  const note = document.getElementById('foodNote').value;
+  var date = document.getElementById('foodDate').value;
+  var time = document.getElementById('foodTime').value;
+  var type = document.getElementById('foodType').value;
+  var amount = parseFloat(document.getElementById('foodAmount').value) || 0;
+  var meal = document.querySelector('#foodMeal .tag.active')?.dataset.value || '';
+  var status = document.querySelector('#foodStatus .tag.active')?.dataset.value || '正常';
+  var note = document.getElementById('foodNote').value;
   
   if (!date) { showToast('请选择日期'); return; }
+  if (amount <= 0) { showToast('请输入克重'); return; }
   
-  appData.foods.push({ id: Date.now(), date, meal, type, amount, status, note });
-  appData.foods.sort((a, b) => new Date(b.date) - new Date(a.date));
+  appData.foods.push({ 
+    id: Date.now(), 
+    date: date, 
+    time: time,
+    type: type, 
+    amount: amount, 
+    meal: meal,
+    status: status, 
+    note: note 
+  });
+  
+  // 按日期+时间倒序排列
+  appData.foods.sort(function(a, b) {
+    var aDT = (a.date || '') + ' ' + (a.time || '');
+    var bDT = (b.date || '') + ' ' + (b.time || '');
+    return bDT.localeCompare(aDT);
+  });
+  
   saveData();
   closeModal('foodModal');
-  showToast('✅ 饮食记录已保存');
+  showToast('✅ 喂食记录已保存');
 }
 
 function deleteFood(id) {
   if (!confirm('确定删除这条记录吗？')) return;
-  appData.foods = appData.foods.filter(f => f.id !== id);
+  appData.foods = appData.foods.filter(function(f) { return f.id !== id; });
   saveData();
 }
 
+// 计算每日进食总量
+function getDailyFoodTotals() {
+  var totals = {};
+  appData.foods.forEach(function(f) {
+    if (!totals[f.date]) totals[f.date] = 0;
+    totals[f.date] += parseFloat(f.amount) || 0;
+  });
+  return totals;
+}
+
+// 获取最近N天的每日进食量（用于图表）
+function getRecentDailyFood(days) {
+  var result = [];
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var totals = getDailyFoodTotals();
+  
+  for (var i = days - 1; i >= 0; i--) {
+    var d = new Date(today);
+    d.setDate(d.getDate() - i);
+    var dateStr = d.toISOString().split('T')[0];
+    result.push({
+      date: dateStr,
+      total: totals[dateStr] || 0
+    });
+  }
+  return result;
+}
+
+// 绘制饮食趋势图
+function drawFoodChart() {
+  var canvas = document.getElementById('foodChart');
+  if (!canvas) return;
+  
+  var data = getRecentDailyFood(14);
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width = canvas.offsetWidth * 2;
+  var h = canvas.height = 360;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  if (data.length === 0) return;
+  
+  var padding = { top: 20, right: 20, bottom: 30, left: 40 };
+  var chartW = w - padding.left - padding.right;
+  var chartH = h - padding.top - padding.bottom;
+  
+  var maxVal = Math.max.apply(null, data.map(function(d) { return d.total; }));
+  maxVal = Math.max(maxVal, 50);
+  maxVal = Math.ceil(maxVal / 20) * 20; // 取20的整数倍
+  
+  // 画网格线
+  ctx.strokeStyle = '#F0F0F0';
+  ctx.lineWidth = 1;
+  ctx.font = '20px sans-serif';
+  ctx.fillStyle = '#999';
+  
+  var gridLines = 4;
+  for (var i = 0; i <= gridLines; i++) {
+    var y = padding.top + chartH * (i / gridLines);
+    var val = Math.round(maxVal * (1 - i / gridLines));
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(w - padding.right, y);
+    ctx.stroke();
+    ctx.fillText(val + 'g', 4, y + 6);
+  }
+  
+  // 画折线
+  var stepX = chartW / (data.length - 1);
+  
+  // 填充区域
+  ctx.beginPath();
+  ctx.moveTo(padding.left, h - padding.bottom);
+  data.forEach(function(d, i) {
+    var x = padding.left + i * stepX;
+    var y = padding.top + chartH * (1 - d.total / maxVal);
+    if (i === 0) {
+      ctx.lineTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.lineTo(padding.left + (data.length - 1) * stepX, h - padding.bottom);
+  ctx.closePath();
+  var gradient = ctx.createLinearGradient(0, padding.top, 0, h - padding.bottom);
+  gradient.addColorStop(0, 'rgba(255, 154, 139, 0.3)');
+  gradient.addColorStop(1, 'rgba(255, 154, 139, 0.05)');
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // 折线
+  ctx.beginPath();
+  ctx.strokeStyle = '#FF9A8B';
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  data.forEach(function(d, i) {
+    var x = padding.left + i * stepX;
+    var y = padding.top + chartH * (1 - d.total / maxVal);
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.stroke();
+  
+  // 数据点
+  data.forEach(function(d, i) {
+    var x = padding.left + i * stepX;
+    var y = padding.top + chartH * (1 - d.total / maxVal);
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#FF6B6B';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+  });
+  
+  // X轴日期（只显示部分）
+  ctx.fillStyle = '#999';
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'center';
+  var showEvery = Math.ceil(data.length / 7);
+  data.forEach(function(d, i) {
+    if (i % showEvery === 0 || i === data.length - 1) {
+      var x = padding.left + i * stepX;
+      var dateStr = d.date.slice(5); // MM-DD
+      ctx.fillText(dateStr, x, h - padding.bottom + 20);
+    }
+  });
+}
+
 function renderFood() {
-  const list = document.getElementById('foodList');
+  var list = document.getElementById('foodList');
   
   if (appData.foods.length === 0) {
-    list.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="emoji">🍽️</div><p>还没有饮食记录</p></div>';
+    list.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="emoji">🍽️</div><p>还没有饮食记录，点上方「+ 喂食」开始记录吧~</p></div>';
+    // 更新汇总数据
+    document.getElementById('foodTodayTotal').textContent = '0';
+    document.getElementById('food7dayAvg').textContent = '0';
+    document.getElementById('foodMealCount').textContent = '0';
+    drawFoodChart();
     return;
   }
   
-  list.innerHTML = appData.foods.map(f => `
-    <div class="record-item">
-      <div class="record-icon">${getFoodIcon(f.type)}</div>
-      <div class="record-content">
-        <div class="record-title">${f.meal} · ${f.type} ${f.amount ? f.amount + 'g' : ''}</div>
-        <div class="record-desc">${f.status} ${f.note ? '· ' + f.note : ''}</div>
+  // 按日期分组
+  var groups = {};
+  appData.foods.forEach(function(f) {
+    if (!groups[f.date]) groups[f.date] = [];
+    groups[f.date].push(f);
+  });
+  
+  // 按日期倒序排列
+  var sortedDates = Object.keys(groups).sort(function(a, b) {
+    return new Date(b) - new Date(a);
+  });
+  
+  var todayStr = new Date().toISOString().split('T')[0];
+  var todayTotal = 0;
+  var todayCount = 0;
+  
+  var html = sortedDates.map(function(date) {
+    var foods = groups[date];
+    var dayTotal = foods.reduce(function(sum, f) { return sum + (parseFloat(f.amount) || 0); }, 0);
+    var isToday = date === todayStr;
+    
+    if (isToday) {
+      todayTotal = dayTotal;
+      todayCount = foods.length;
+    }
+    
+    var dateLabel = formatDate(date);
+    if (isToday) dateLabel = '今天 · ' + dateLabel;
+    
+    var foodItems = foods.map(function(f) {
+      var timeStr = f.time || '';
+      var mealStr = f.meal ? ' · ' + f.meal : '';
+      return `
+        <div class="record-item">
+          <div class="record-icon">${getFoodIcon(f.type)}</div>
+          <div class="record-content">
+            <div class="record-title">
+              ${timeStr ? '<span class="food-time-badge">' + timeStr + '</span>' : ''}
+              ${f.type}${mealStr}
+            </div>
+            <div class="record-desc">${f.status || ''} ${f.note ? '· ' + f.note : ''}</div>
+          </div>
+          <div class="food-amount-badge">${f.amount}g</div>
+          <button class="record-delete" onclick="deleteFood(${f.id})">×</button>
+        </div>
+      `;
+    }).join('');
+    
+    return `
+      <div class="food-day-group">
+        <div class="food-day-header">
+          <span class="food-day-date">${dateLabel}</span>
+          <span class="food-day-total">共 ${dayTotal.toFixed(0)}g / ${foods.length}餐</span>
+        </div>
+        ${foodItems}
       </div>
-      <div class="record-date">${formatDate(f.date)}</div>
-      <button class="record-delete" onclick="deleteFood(${f.id})">×</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+  
+  list.innerHTML = html;
+  
+  // 更新汇总卡片
+  document.getElementById('foodTodayTotal').textContent = todayTotal.toFixed(0);
+  document.getElementById('foodMealCount').textContent = todayCount;
+  
+  // 7天平均
+  var recent7 = getRecentDailyFood(7);
+  var total7 = recent7.reduce(function(sum, d) { return sum + d.total; }, 0);
+  var hasDataDays = recent7.filter(function(d) { return d.total > 0; }).length;
+  var avg7 = hasDataDays > 0 ? (total7 / hasDataDays) : 0;
+  document.getElementById('food7dayAvg').textContent = avg7.toFixed(0);
+  
+  // 画图表
+  drawFoodChart();
 }
 
 function getFoodIcon(type) {
-  const icons = { 猫粮: '🥣', 罐头: '🥫', 冻干: '🍪', 零食: '🍬', 自制: '🍳', 其他: '🍽️' };
+  var icons = { 猫粮: '🥣', 罐头: '🥫', 冻干: '🍪', 零食: '🍬', 湿粮: '🍲', 自制: '🍳', 其他: '🍽️' };
   return icons[type] || '🍽️';
 }
 
